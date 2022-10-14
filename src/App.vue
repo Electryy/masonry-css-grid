@@ -1,47 +1,80 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
+  <div class="container">
+    <div class="item" v-for="n in 10">
+      <h5>Item {{ n }}</h5>
+      <img :src="`https://picsum.photos/300/${randomNumber(50)}0`" alt="jea" />
+      <p>
+        {{ generateString() }}
+      </p>
     </div>
-  </header>
-
-  <main>
-    <TheWelcome />
-  </main>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
+<script setup lang="ts">
+import { onMounted } from "vue";
+import daLibrary from "./library";
+
+const randomNumber = (max) => {
+  return Math.floor(Math.random() * max);
+};
+
+const characters =
+  "ABCD EFGHIJKL MNOPQRSTUV WXYZabcdefg hijklmn opqrst uvwx yz0 1234 56789";
+
+const generateString = () => {
+  const length = Math.floor(Math.random() * 100);
+  let result = " ";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+};
+
+console.log(generateString(5));
+
+onMounted(() => {
+  const mansonry = daLibrary(".container");
+  mansonry.start();
+});
+</script>
+
+<style lang="scss" scoped>
+.item {
+  background-color: aquamarine;
+  // margin: 10px;
+  text-overflow: clip;
+}
+* {
+  margin: 0;
+  padding: 0;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.container {
+  overflow: hidden;
+  width: 90vw;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  @media (min-width: 300px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 500px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (min-width: 700px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  img {
+    width: 100%;
+    display: block;
+  }
 }
+</style>
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+<style lang="scss">
+.wrap {
+  padding: 10px;
+  overflow: hidden;
 }
 </style>
