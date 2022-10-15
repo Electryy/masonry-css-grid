@@ -45,6 +45,7 @@ onMounted(() => {
   background-color: aquamarine;
   // margin: 10px;
   text-overflow: clip;
+  transition: all 300ms ease;
 }
 * {
   margin: 0;
