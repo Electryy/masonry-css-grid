@@ -1,18 +1,23 @@
 <template>
   <div class="container">
-    <div class="item" v-for="n in 10">
-      <h5>Item {{ n }}</h5>
-      <img :src="`https://picsum.photos/300/300`" alt="jea" />
+    <div class="padding" v-for="item, key of data">
+      <div class="item">
+        <h5>Item {{ key }}</h5>
+      <img :src="item.img" alt="jea" />
       <p>
-        {{printRandomText()}}
+        {{item.text}}
       </p>
+      </div>
+      
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import daLibrary from "./library";
+
+const data = ref<any[]>([]);
 
 const  generateRandom = (min = 0, max = 100) => {
     // find diff
@@ -39,17 +44,59 @@ const printRandomText = () => {
 
 
 onMounted(() => {
+  
+  data.value.push(
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+  )
+
+  setTimeout(() => {
+    data.value.push(
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: 'https://picsum.photos/300/300', text: printRandomText() })
+
+    setTimeout(() => {
+      const values = JSON.parse(JSON.stringify(data.value));
+      values.pop();
+      values.pop();
+      values.pop();
+      values.pop();
+      values.pop();
+      values.pop();
+      values.pop();
+      values.pop();
+      data.value = values;
+    }, 2000);
+}, 2000);
+
   const container = document.querySelector(".container") as HTMLElement;
   if(container) {
     const mansonry = daLibrary(container);
     mansonry.start();
   }
-
-  
 });
 </script>
 
 <style lang="scss" scoped>
+.padding {
+  padding: 10px;
+}
 .item {
   background-color: aquamarine;
   // height: 100%;
@@ -64,8 +111,9 @@ onMounted(() => {
 .container {
   overflow: hidden;
   width: 90vw;
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  grid-gap: 10px;
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr);
+  --masonry-gap: 10px;
   // grid-template-columns: repeat(1, 1fr);
   // @media (min-width: 300px) {
   //   grid-template-columns: repeat(2, 1fr);
@@ -86,7 +134,6 @@ onMounted(() => {
 <style lang="scss">
 .wrap {
   overflow: hidden;
-  outline: 1px solid black;
-
+  // outline: 1px solid black;
 }
 </style>
