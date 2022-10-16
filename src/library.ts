@@ -1,29 +1,29 @@
 let masonryContainer: HTMLElement;
 
-let id = 0;
+let containerSelector: string;
 
-let timeoutId: number = -1;
+let initTimeoutId: number = -1;
+
+let resizeTimeoutId: number = -1;
 
 interface MasonryItem extends HTMLElement {
-    lastHeight: number;
-    newHeight: number;
+    masonry: {
+        lastHeight: number;
+        newHeight: number;
+    };
 }
 
-const timeoutFunc = () => {
+const doMasonry = () => {
     const items = Array.from(masonryContainer.children) as MasonryItem[];
 
     items.forEach((item) => {
         const firstPos = item.getBoundingClientRect();
-        // const inner = wrapper.firstChild as HTMLElement;
-        // const elementStyles = getComputedStyle(masonryContainer);
-        // const gap = parseInt(elementStyles.getPropertyValue('--masonry-gap'));
-        // console.log(gap);
 
         requestAnimationFrame(() => {
-            if (item.lastHeight !== item.newHeight) {
-                item.style.gridRow = `span ${item.newHeight}`;
+            if (item.masonry.lastHeight !== item.masonry.newHeight) {
+                item.style.gridRow = `span ${item.masonry.newHeight}`;
             }
-            item.lastHeight = item.newHeight;
+            item.masonry.lastHeight = item.masonry.newHeight;
             const lastPos = item.getBoundingClientRect();
             const deltaX = firstPos.left - lastPos.left;
             const deltaY = firstPos.top - lastPos.top;
@@ -61,18 +61,14 @@ const resizeObserver = new ResizeObserver((entries) => {
         if (!item) {
             continue;
         }
-        item.newHeight = height;
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(timeoutFunc, 100);
+        item.masonry = {
+            newHeight: height,
+            lastHeight: 0,
+        };
+        clearTimeout(resizeTimeoutId);
+        resizeTimeoutId = setTimeout(doMasonry, 100);
     }
 });
-
-const start = () => {
-    const elements = Array.from(masonryContainer.children) as HTMLElement[];
-    elements.forEach((element) => {
-        initItem(element);
-    });
-};
 
 const initItem = (content: HTMLElement) => {
     const wrapper = document.createElement('div');
@@ -97,42 +93,65 @@ const update = () => {
     }
 };
 
-const init = (container: HTMLElement) => {
-    masonryContainer = container;
+const start = () => {
+    if (!masonryContainer) {
+        requestAnimationFrame(() => {
+            if (!giveUpAndExit) {
+                console.log('not giving up');
+                start();
+            }
+        });
+        return;
+    }
+    const elements = Array.from(masonryContainer.children) as HTMLElement[];
 
-    // Callback function to execute when mutations are observed
-    const callback = (mutationList, observer) => {
-        update();
-        // for (const mutation of mutationList) {
-        //     if (mutation.type === 'childList') {
-        //         const added = Array.from(mutation.addedNodes) as HTMLElement[];
-
-        //         added.forEach((item) => {
-        //             if (!item.classList.contains('wrap')) {
-        //                 initItem(item);
-        //             }
-        //         });
-        //         clean();
-        //         // const removed = Array.from(
-        //         //     mutation.removedNodes
-        //         // ) as HTMLElement[];
-
-        //         // removed.forEach((item) => {
-        //         //     console.log(item);
-        //         //     if (item.parentElement.classList.contains('wrap')) {
-        //         //     }
-        //         // });
-
-        //         // console.log(mutation.removedNodes);
-        //     }
-        // }
-    };
-
-    // Create an observer instance linked to the callback function
-    const observer = new MutationObserver(callback);
+    elements.forEach((element) => {
+        initItem(element);
+    });
+    const containerObserver = new MutationObserver(update);
 
     // Start observing the target node for configured mutations
-    observer.observe(masonryContainer, { childList: true, subtree: true });
+    containerObserver.observe(masonryContainer, {
+        childList: true,
+        subtree: true,
+    });
+    console.log('start');
+};
+
+let giveUpAndExit = false;
+
+const init = (selector: string) => {
+    containerSelector = selector;
+
+    masonryContainer = document.querySelector(containerSelector) as HTMLElement;
+    if (!masonryContainer) {
+        const body = document.documentElement || document.body;
+        const bodyObserver = new MutationObserver((record, bodyObserver) => {
+            masonryContainer = document.querySelector(
+                containerSelector
+            ) as HTMLElement;
+
+            console.log('obseer');
+            if (masonryContainer) {
+                bodyObserver.disconnect();
+                console.log('ready to start');
+                // Create an bodyObserver instance linked to the callback function
+            } else {
+                clearTimeout(initTimeoutId);
+                initTimeoutId = setTimeout(() => {
+                    console.error('Container not found');
+
+                    giveUpAndExit = true;
+                    bodyObserver.disconnect();
+                }, 5000);
+            }
+        });
+
+        bodyObserver.observe(body, {
+            childList: true,
+            subtree: true,
+        });
+    }
 
     console.log('init');
     return {

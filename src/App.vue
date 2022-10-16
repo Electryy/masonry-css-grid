@@ -35,6 +35,14 @@ const  generateRandom = (min = 0, max = 100) => {
     return rand;
 }
 
+const mansonry = daLibrary(".container");
+mansonry.start();
+
+setTimeout(() => {
+  
+}, 1000);
+    
+
 const printRandomText = () => {
   const text = "Quisque mattis laoreet erat. Proin tincidunt molestie vulputate. Donec auctor vitae magna nec cursus. Nam vel consectetur ipsum, eu lacinia metus. Nam a magna tempor, rhoncus felis id, maximus turpis. Nullam aliquet condimentum nunc sed ullamcorper. Donec volutpat quam eros, luctus facilisis orci cursus ut. Sed hendrerit gravida augue, ac sodales libero pharetra vel. Donec nec ipsum urna. Nam metus libero, mollis in metus at, tempus dictum erat. Donec tempus nulla mattis nunc ultrices ornare."
   const array = text.split(". ");
@@ -85,11 +93,7 @@ onMounted(() => {
     }, 2000);
 }, 2000);
 
-  const container = document.querySelector(".container") as HTMLElement;
-  if(container) {
-    const mansonry = daLibrary(container);
-    mansonry.start();
-  }
+
 });
 </script>
 
