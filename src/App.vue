@@ -35,7 +35,7 @@ const  generateRandom = (min = 0, max = 100) => {
     return rand;
 }
 
-const mansonry = daLibrary(".container");
+const mansonry = daLibrary(".container", {});
 mansonry.start();
 
 setTimeout(() => {
@@ -114,17 +114,17 @@ onMounted(() => {
 
 .container {
   overflow: hidden;
-  width: 90vw;
-  display: grid; 
-  grid-template-columns: repeat(3, 1fr);
+  width: 100%;
+  // display: grid; 
+  // grid-template-columns: repeat(3, 1fr);
   --masonry-gap: 10px;
   // grid-template-columns: repeat(1, 1fr);
   // @media (min-width: 300px) {
   //   grid-template-columns: repeat(2, 1fr);
   // }
-  @media (min-width: 500px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  // @media (min-width: 500px) {
+  //   grid-template-columns: repeat(3, 1fr);
+  // }
   // @media (min-width: 700px) {
   //   grid-template-columns: repeat(4, 1fr);
   // }
@@ -137,7 +137,7 @@ onMounted(() => {
 
 <style lang="scss">
 .wrap {
-  overflow: hidden;
+  // overflow: hidden;
   // outline: 1px solid black;
 }
 </style>

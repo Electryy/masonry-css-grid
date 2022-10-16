@@ -6,6 +6,8 @@ let initTimeoutId: number = -1;
 
 let resizeTimeoutId: number = -1;
 
+let giveUpAndExit: boolean = false;
+
 interface MasonryItem extends HTMLElement {
     masonry: {
         lastHeight: number;
@@ -93,6 +95,21 @@ const update = () => {
     }
 };
 
+const setStyles = () => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+    [data-masonry-container] {
+        display: grid; 
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    [data-masonry-item] {
+        overflow: hidden;
+    }
+    `;
+    //.replace(/\s/g, '')
+    document.head.appendChild(style);
+};
+
 const start = () => {
     if (!masonryContainer) {
         requestAnimationFrame(() => {
@@ -103,6 +120,7 @@ const start = () => {
         });
         return;
     }
+    setStyles();
     const elements = Array.from(masonryContainer.children) as HTMLElement[];
 
     elements.forEach((element) => {
@@ -118,39 +136,42 @@ const start = () => {
     console.log('start');
 };
 
-let giveUpAndExit = false;
+const waitAndGetContainer = () => {
+    const body = document.documentElement || document.body;
+    const bodyObserver = new MutationObserver((record, bodyObserver) => {
+        masonryContainer = document.querySelector(
+            containerSelector
+        ) as HTMLElement;
 
-const init = (selector: string) => {
+        console.log('obseer');
+        if (masonryContainer) {
+            bodyObserver.disconnect();
+            console.log('ready to start');
+            masonryContainer.dataset.masonryContainer = '';
+            // Create an bodyObserver instance linked to the callback function
+        } else {
+            clearTimeout(initTimeoutId);
+            initTimeoutId = setTimeout(() => {
+                console.error('Container not found');
+
+                giveUpAndExit = true;
+                bodyObserver.disconnect();
+            }, 5000);
+        }
+    });
+
+    bodyObserver.observe(body, {
+        childList: true,
+        subtree: true,
+    });
+};
+
+const init = (selector: string, options: { useAnimations: boolean }) => {
     containerSelector = selector;
 
     masonryContainer = document.querySelector(containerSelector) as HTMLElement;
     if (!masonryContainer) {
-        const body = document.documentElement || document.body;
-        const bodyObserver = new MutationObserver((record, bodyObserver) => {
-            masonryContainer = document.querySelector(
-                containerSelector
-            ) as HTMLElement;
-
-            console.log('obseer');
-            if (masonryContainer) {
-                bodyObserver.disconnect();
-                console.log('ready to start');
-                // Create an bodyObserver instance linked to the callback function
-            } else {
-                clearTimeout(initTimeoutId);
-                initTimeoutId = setTimeout(() => {
-                    console.error('Container not found');
-
-                    giveUpAndExit = true;
-                    bodyObserver.disconnect();
-                }, 5000);
-            }
-        });
-
-        bodyObserver.observe(body, {
-            childList: true,
-            subtree: true,
-        });
+        waitAndGetContainer();
     }
 
     console.log('init');
