@@ -2,9 +2,9 @@
   <div class="container">
     <div class="item" v-for="n in 10">
       <h5>Item {{ n }}</h5>
-      <img :src="`https://picsum.photos/300/${randomNumber(50)}0`" alt="jea" />
+      <img :src="`https://picsum.photos/300/300`" alt="jea" />
       <p>
-        {{ generateString() }}
+        {{printRandomText()}}
       </p>
     </div>
   </div>
@@ -14,38 +14,47 @@
 import { onMounted } from "vue";
 import daLibrary from "./library";
 
-const randomNumber = (max) => {
-  return Math.floor(Math.random() * max);
-};
+const  generateRandom = (min = 0, max = 100) => {
+    // find diff
+    let difference = max - min;
 
-const characters =
-  "ABCD EFGHIJKL MNOPQRSTUV WXYZabcdefg hijklmn opqrst uvwx yz0 1234 56789";
+    // generate random number 
+    let rand = Math.random();
 
-const generateString = () => {
-  const length = Math.floor(Math.random() * 100);
-  let result = " ";
-  const charactersLength = characters.length;
-  for (let i = 0; i < length; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
+    // multiply with difference 
+    rand = Math.floor( rand * difference);
 
-  return result;
-};
+    // add with min value 
+    rand = rand + min;
 
-console.log(generateString(5));
+    return rand;
+}
+
+const printRandomText = () => {
+  const text = "Quisque mattis laoreet erat. Proin tincidunt molestie vulputate. Donec auctor vitae magna nec cursus. Nam vel consectetur ipsum, eu lacinia metus. Nam a magna tempor, rhoncus felis id, maximus turpis. Nullam aliquet condimentum nunc sed ullamcorper. Donec volutpat quam eros, luctus facilisis orci cursus ut. Sed hendrerit gravida augue, ac sodales libero pharetra vel. Donec nec ipsum urna. Nam metus libero, mollis in metus at, tempus dictum erat. Donec tempus nulla mattis nunc ultrices ornare."
+  const array = text.split(". ");
+  const randomz =  array.slice(0, generateRandom(1, 10));
+  return randomz.join(". ");
+}
+
 
 onMounted(() => {
-  const mansonry = daLibrary(".container");
-  mansonry.start();
+  const container = document.querySelector(".container") as HTMLElement;
+  if(container) {
+    const mansonry = daLibrary(container);
+    mansonry.start();
+  }
+
+  
 });
 </script>
 
 <style lang="scss" scoped>
 .item {
   background-color: aquamarine;
+  // height: 100%;
+  overflow: hidden;
   // margin: 10px;
-  text-overflow: clip;
-  transition: all 300ms ease;
 }
 * {
   margin: 0;
@@ -55,17 +64,18 @@ onMounted(() => {
 .container {
   overflow: hidden;
   width: 90vw;
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  @media (min-width: 300px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10px;
+  // grid-template-columns: repeat(1, 1fr);
+  // @media (min-width: 300px) {
+  //   grid-template-columns: repeat(2, 1fr);
+  // }
   @media (min-width: 500px) {
     grid-template-columns: repeat(3, 1fr);
   }
-  @media (min-width: 700px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  // @media (min-width: 700px) {
+  //   grid-template-columns: repeat(4, 1fr);
+  // }
   img {
     width: 100%;
     display: block;
@@ -75,7 +85,8 @@ onMounted(() => {
 
 <style lang="scss">
 .wrap {
-  padding: 10px;
   overflow: hidden;
+  outline: 1px solid black;
+
 }
 </style>
