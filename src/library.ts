@@ -20,6 +20,9 @@ const doMasonry = () => {
 
     items.forEach((item) => {
         const firstPos = item.getBoundingClientRect();
+        // if (item.masonry.lastHeight !== item.masonry.newHeight) {
+        //     item.style.gridRow = `span ${item.masonry.newHeight}`;
+        // }
 
         requestAnimationFrame(() => {
             if (item.masonry.lastHeight !== item.masonry.newHeight) {
@@ -67,8 +70,8 @@ const resizeObserver = new ResizeObserver((entries) => {
             newHeight: height,
             lastHeight: 0,
         };
-        clearTimeout(resizeTimeoutId);
-        resizeTimeoutId = setTimeout(doMasonry, 100);
+        cancelAnimationFrame(resizeTimeoutId);
+        resizeTimeoutId = requestAnimationFrame(doMasonry);
     }
 });
 
@@ -139,17 +142,18 @@ const start = () => {
 const waitAndGetContainer = () => {
     const body = document.documentElement || document.body;
     const bodyObserver = new MutationObserver((record, bodyObserver) => {
-        masonryContainer = document.querySelector(
-            containerSelector
-        ) as HTMLElement;
+        requestAnimationFrame(() => {
+            masonryContainer = document.querySelector(
+                containerSelector
+            ) as HTMLElement;
 
-        console.log('obseer');
-        if (masonryContainer) {
-            bodyObserver.disconnect();
-            console.log('ready to start');
-            masonryContainer.dataset.masonryContainer = '';
-            // Create an bodyObserver instance linked to the callback function
-        } else {
+            console.log('obseer');
+            if (masonryContainer) {
+                bodyObserver.disconnect();
+                console.log('ready to start');
+                masonryContainer.dataset.masonryContainer = '';
+                return;
+            }
             clearTimeout(initTimeoutId);
             initTimeoutId = setTimeout(() => {
                 console.error('Container not found');
@@ -157,7 +161,7 @@ const waitAndGetContainer = () => {
                 giveUpAndExit = true;
                 bodyObserver.disconnect();
             }, 5000);
-        }
+        });
     });
 
     bodyObserver.observe(body, {
