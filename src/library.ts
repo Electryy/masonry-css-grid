@@ -23,7 +23,7 @@ let giveUpAndExit: boolean = false;
 
 let masonryOptions = {
     minWidth: 200,
-    useAnimations: true,
+    useAnimations: false,
     gap: 10,
 };
 
@@ -104,11 +104,67 @@ const initItem = (content: HTMLElement) => {
     resizeObserver.observe(content);
 };
 
+const doAnimations = () => {
+    const items = Array.from(masonryContainer.children) as IMasonryItem[];
+    // console.log('doanims');
+
+    for (const item of items) {
+        if (!item.hasAttribute('data-masonry-item')) {
+            console.log('eioo!');
+            continue;
+        }
+        const firstPos = item.getBoundingClientRect();
+        item.firstPos = firstPos;
+    }
+    requestAnimationFrame(() => {
+        const items = Array.from(masonryContainer.children) as IMasonryItem[];
+
+        for (const item of items) {
+            if (!item.firstPos) {
+                continue;
+            }
+
+            const lastPos = item.getBoundingClientRect();
+            // console.dir(item);
+            const deltaX = item.firstPos.left - lastPos.left;
+            const deltaY = item.firstPos.top - lastPos.top;
+            const deltaW = item.firstPos.width / lastPos.width;
+            const deltaH = item.firstPos.height / lastPos.height;
+
+            if (deltaX > 100 || deltaY > 100) {
+                item.animate(
+                    [
+                        {
+                            transformOrigin: 'top left',
+                            transform: `translate(${deltaX}px, ${deltaY}px)
+                            scale(${deltaW}, ${deltaH})
+                            `,
+                        },
+                        {
+                            transformOrigin: 'top left',
+                            transform: 'none',
+                        },
+                    ],
+                    {
+                        duration: 500,
+                        easing: 'ease',
+                        fill: 'both',
+                    }
+                );
+            }
+        }
+        doAnimations();
+    });
+};
+
 const update = () => {
     const items = Array.from(masonryContainer.children) as IMasonryItem[];
 
+    // const removedElements: HTMLElement[] = []
+
     for (const element of items) {
         if (element.children.length === 0) {
+            // removedElements.push(element);
             element.remove();
             continue;
         } else if (!element.hasAttribute('data-masonry-item')) {
@@ -147,7 +203,10 @@ const start = () => {
         return;
     }
     setStyles();
+    // doAnimations();
     const elements = Array.from(masonryContainer.children) as HTMLElement[];
+
+    doAnimations();
 
     for (const element of elements) {
         initItem(element);

@@ -35,7 +35,7 @@ const  generateRandom = (min = 0, max = 100) => {
     return rand;
 }
 
-const mansonry = daLibrary(".container", {});
+const mansonry = daLibrary(".container", {minWidth: 10});
 mansonry.start();
 
 setTimeout(() => {
@@ -66,32 +66,32 @@ onMounted(() => {
     { img: 'https://picsum.photos/300/300', text: printRandomText() },
   )
 
-  setTimeout(() => {
-    data.value.push(
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() })
+//   setTimeout(() => {
+//     data.value.push(
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() },
+//     { img: 'https://picsum.photos/300/300', text: printRandomText() })
 
-    setTimeout(() => {
-      const values = JSON.parse(JSON.stringify(data.value));
-      values.pop();
-      values.pop();
-      values.pop();
-      values.pop();
-      values.pop();
-      values.pop();
-      values.pop();
-      values.pop();
-      data.value = values;
-    }, 2000);
-}, 2000);
+//     setTimeout(() => {
+//       const values = JSON.parse(JSON.stringify(data.value));
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       values.pop();
+//       data.value = values;
+//     }, 2000);
+// }, 2000);
 
 
 });
@@ -99,7 +99,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .padding {
-  padding: 10px;
+  // padding: 10px;
 }
 .item {
   background-color: aquamarine;
@@ -114,7 +114,6 @@ onMounted(() => {
 
 .container {
   overflow: hidden;
-  width: 100%;
   // display: grid; 
   // grid-template-columns: repeat(3, 1fr);
   --masonry-gap: 10px;
