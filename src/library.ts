@@ -1,34 +1,54 @@
-let masonryContainer: HTMLElement;
+type Options = {
+    minWidth?: number;
+    gap?: number;
+    useAnimations?: boolean;
+};
 
-let containerSelector: string;
-
-let initTimeoutId: number = -1;
-
-let resizeTimeoutId: number = -1;
-
-let giveUpAndExit: boolean = false;
-
-interface MasonryItem extends HTMLElement {
+interface IMasonryItem extends HTMLElement {
     masonry: {
         lastHeight: number;
         newHeight: number;
     };
 }
 
-const doMasonry = () => {
-    const items = Array.from(masonryContainer.children) as MasonryItem[];
+let masonryContainer: HTMLElement;
 
-    items.forEach((item) => {
+let containerSelector: string;
+
+let giveUpAndExitTimeout: number = -1;
+
+let resizeTimeoutId: number = -1;
+
+let giveUpAndExit: boolean = false;
+
+let masonryOptions = {
+    minWidth: 200,
+    useAnimations: true,
+    gap: 10,
+};
+
+const setGridSpan = (item: IMasonryItem) => {
+    if (item.masonry.lastHeight !== item.masonry.newHeight) {
+        item.style.gridRow = `span ${
+            item.masonry.newHeight + masonryOptions.gap * 2
+        }`;
+    }
+    item.masonry.lastHeight = item.masonry.newHeight;
+};
+
+const doMasonry = () => {
+    const items = Array.from(masonryContainer.children) as IMasonryItem[];
+
+    for (const item of items) {
+        if (!masonryOptions.useAnimations) {
+            setGridSpan(item);
+            continue;
+        }
+
         const firstPos = item.getBoundingClientRect();
-        // if (item.masonry.lastHeight !== item.masonry.newHeight) {
-        //     item.style.gridRow = `span ${item.masonry.newHeight}`;
-        // }
 
         requestAnimationFrame(() => {
-            if (item.masonry.lastHeight !== item.masonry.newHeight) {
-                item.style.gridRow = `span ${item.masonry.newHeight}`;
-            }
-            item.masonry.lastHeight = item.masonry.newHeight;
+            setGridSpan(item);
             const lastPos = item.getBoundingClientRect();
             const deltaX = firstPos.left - lastPos.left;
             const deltaY = firstPos.top - lastPos.top;
@@ -53,7 +73,7 @@ const doMasonry = () => {
                 }
             );
         });
-    });
+    }
 };
 
 const resizeObserver = new ResizeObserver((entries) => {
@@ -62,7 +82,7 @@ const resizeObserver = new ResizeObserver((entries) => {
             return;
         }
         const height = Math.ceil(entry.borderBoxSize[0].blockSize);
-        const item = entry.target.parentElement as MasonryItem;
+        const item = entry.target.parentElement as IMasonryItem;
         if (!item) {
             continue;
         }
@@ -77,7 +97,6 @@ const resizeObserver = new ResizeObserver((entries) => {
 
 const initItem = (content: HTMLElement) => {
     const wrapper = document.createElement('div');
-    wrapper.className = 'wrap';
     wrapper.dataset.masonryItem = '';
     masonryContainer.insertBefore(wrapper, content);
     wrapper.appendChild(content);
@@ -86,7 +105,7 @@ const initItem = (content: HTMLElement) => {
 };
 
 const update = () => {
-    const items = Array.from(masonryContainer.children) as MasonryItem[];
+    const items = Array.from(masonryContainer.children) as IMasonryItem[];
 
     for (const element of items) {
         if (element.children.length === 0) {
@@ -103,10 +122,14 @@ const setStyles = () => {
     style.innerHTML = `
     [data-masonry-container] {
         display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(${
+            masonryOptions.minWidth + masonryOptions.gap
+        }px, 100%), 1fr));
+        margin: ${-Math.abs(masonryOptions.gap)}px
     }
     [data-masonry-item] {
         overflow: hidden;
+        padding: ${masonryOptions.gap}px
     }
     `;
     //.replace(/\s/g, '')
@@ -126,9 +149,10 @@ const start = () => {
     setStyles();
     const elements = Array.from(masonryContainer.children) as HTMLElement[];
 
-    elements.forEach((element) => {
+    for (const element of elements) {
         initItem(element);
-    });
+    }
+
     const containerObserver = new MutationObserver(update);
 
     // Start observing the target node for configured mutations
@@ -139,29 +163,36 @@ const start = () => {
     console.log('start');
 };
 
-const waitAndGetContainer = () => {
+const setContainer = (element: HTMLElement) => {
+    if (element) {
+        masonryContainer = element;
+        masonryContainer.dataset.masonryContainer = '';
+    }
+};
+
+const waitForContainer = () => {
     const body = document.documentElement || document.body;
-    const bodyObserver = new MutationObserver((record, bodyObserver) => {
-        requestAnimationFrame(() => {
-            masonryContainer = document.querySelector(
-                containerSelector
-            ) as HTMLElement;
-
-            console.log('obseer');
-            if (masonryContainer) {
-                bodyObserver.disconnect();
-                console.log('ready to start');
-                masonryContainer.dataset.masonryContainer = '';
-                return;
+    const bodyObserver = new MutationObserver((mutationList, bodyObserver) => {
+        for (const mutation of mutationList) {
+            if (mutation.type === 'childList') {
+                const addedNodes = Array.from(
+                    mutation.addedNodes
+                ) as HTMLElement[];
+                for (const node of addedNodes) {
+                    if (node.matches(containerSelector)) {
+                        setContainer(node);
+                        bodyObserver.disconnect();
+                        return;
+                    }
+                }
             }
-            clearTimeout(initTimeoutId);
-            initTimeoutId = setTimeout(() => {
-                console.error('Container not found');
-
-                giveUpAndExit = true;
-                bodyObserver.disconnect();
-            }, 5000);
-        });
+        }
+        clearTimeout(giveUpAndExitTimeout);
+        giveUpAndExitTimeout = setTimeout(() => {
+            console.error('Container not found');
+            giveUpAndExit = true;
+            bodyObserver.disconnect();
+        }, 5000);
     });
 
     bodyObserver.observe(body, {
@@ -170,12 +201,15 @@ const waitAndGetContainer = () => {
     });
 };
 
-const init = (selector: string, options: { useAnimations: boolean }) => {
+const init = (selector: string, options: Options) => {
     containerSelector = selector;
 
-    masonryContainer = document.querySelector(containerSelector) as HTMLElement;
+    const element = document.querySelector(containerSelector) as HTMLElement;
+
+    setContainer(element);
+
     if (!masonryContainer) {
-        waitAndGetContainer();
+        waitForContainer();
     }
 
     console.log('init');
