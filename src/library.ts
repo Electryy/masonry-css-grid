@@ -6,8 +6,9 @@ type Options = {
 
 interface IMasonryItem extends HTMLElement {
     masonry: {
-        lastHeight: number;
-        newHeight: number;
+        lastHeight?: number;
+        newHeight?: number;
+        firstPosition?: DOMRect | null;
     };
 }
 
@@ -27,53 +28,8 @@ let masonryOptions = {
     gap: 10,
 };
 
-const setGridSpan = (item: IMasonryItem) => {
-    if (item.masonry.lastHeight !== item.masonry.newHeight) {
-        item.style.gridRow = `span ${
-            item.masonry.newHeight + masonryOptions.gap * 2
-        }`;
-    }
-    item.masonry.lastHeight = item.masonry.newHeight;
-};
-
-const doMasonry = () => {
-    const items = Array.from(masonryContainer.children) as IMasonryItem[];
-
-    for (const item of items) {
-        if (!masonryOptions.useAnimations) {
-            setGridSpan(item);
-            continue;
-        }
-
-        const firstPos = item.getBoundingClientRect();
-
-        requestAnimationFrame(() => {
-            setGridSpan(item);
-            const lastPos = item.getBoundingClientRect();
-            const deltaX = firstPos.left - lastPos.left;
-            const deltaY = firstPos.top - lastPos.top;
-            if (deltaX === 0) {
-                return;
-            }
-            item.animate(
-                [
-                    {
-                        transformOrigin: 'top left',
-                        transform: `translate(${deltaX}px, ${deltaY}px)`,
-                    },
-                    {
-                        transformOrigin: 'top left',
-                        transform: 'none',
-                    },
-                ],
-                {
-                    duration: 100,
-                    easing: 'ease',
-                    fill: 'both',
-                }
-            );
-        });
-    }
+const buildGridRow = (height: number) => {
+    return `span ${height + masonryOptions.gap * 2}`;
 };
 
 const resizeObserver = new ResizeObserver((entries) => {
@@ -81,57 +37,65 @@ const resizeObserver = new ResizeObserver((entries) => {
         if (entry.borderBoxSize?.length === 0) {
             return;
         }
-        const height = Math.ceil(entry.borderBoxSize[0].blockSize);
+
         const item = entry.target.parentElement as IMasonryItem;
         if (!item) {
             continue;
         }
-        item.masonry = {
-            newHeight: height,
-            lastHeight: 0,
-        };
-        cancelAnimationFrame(resizeTimeoutId);
-        resizeTimeoutId = requestAnimationFrame(doMasonry);
+        const height = Math.ceil(entry.borderBoxSize[0].blockSize);
+        const span = buildGridRow(height);
+        if (item.style.gridRow !== span) {
+            item.style.gridRow = span;
+        }
     }
 });
 
 const initItem = (content: HTMLElement) => {
-    const wrapper = document.createElement('div');
-    wrapper.dataset.masonryItem = '';
-    masonryContainer.insertBefore(wrapper, content);
-    wrapper.appendChild(content);
+    const item = document.createElement('div') as unknown as IMasonryItem;
+    item.dataset.masonryItem = '';
+    item['masonry'] = {
+        firstPosition: null,
+    };
+    masonryContainer.insertBefore(item, content);
+    item.appendChild(content);
     content.dataset.masonryItemContent = '';
     resizeObserver.observe(content);
 };
 
+const getItems = () => {
+    return Array.from(masonryContainer.children) as IMasonryItem[];
+};
+
 const doAnimations = () => {
-    const items = Array.from(masonryContainer.children) as IMasonryItem[];
+    const items = getItems();
     // console.log('doanims');
 
     for (const item of items) {
         if (!item.hasAttribute('data-masonry-item')) {
-            console.log('eioo!');
             continue;
         }
-        const firstPos = item.getBoundingClientRect();
-        item.firstPos = firstPos;
+        if (!item.masonry) {
+            item.masonry = {
+                firstPosition: null,
+            };
+        }
+        item.masonry.firstPosition = item.getBoundingClientRect();
     }
     requestAnimationFrame(() => {
-        const items = Array.from(masonryContainer.children) as IMasonryItem[];
+        const items = getItems();
 
         for (const item of items) {
-            if (!item.firstPos) {
+            if (!item.masonry.firstPosition) {
                 continue;
             }
 
             const lastPos = item.getBoundingClientRect();
-            // console.dir(item);
-            const deltaX = item.firstPos.left - lastPos.left;
-            const deltaY = item.firstPos.top - lastPos.top;
-            const deltaW = item.firstPos.width / lastPos.width;
-            const deltaH = item.firstPos.height / lastPos.height;
+            const deltaX = item.masonry.firstPosition.left - lastPos.left;
+            const deltaY = item.masonry.firstPosition.top - lastPos.top;
+            const deltaW = item.masonry.firstPosition.width / lastPos.width;
+            const deltaH = item.masonry.firstPosition.height / lastPos.height;
 
-            if (deltaX > 100 || deltaY > 100) {
+            if (deltaX > 50 || deltaY > 50) {
                 item.animate(
                     [
                         {
@@ -146,7 +110,7 @@ const doAnimations = () => {
                         },
                     ],
                     {
-                        duration: 500,
+                        duration: 100,
                         easing: 'ease',
                         fill: 'both',
                     }
@@ -158,19 +122,17 @@ const doAnimations = () => {
 };
 
 const update = () => {
-    const items = Array.from(masonryContainer.children) as IMasonryItem[];
-
-    // const removedElements: HTMLElement[] = []
-
-    for (const element of items) {
-        if (element.children.length === 0) {
-            // removedElements.push(element);
-            element.remove();
-            continue;
-        } else if (!element.hasAttribute('data-masonry-item')) {
-            initItem(element);
-        }
-    }
+    // const items = Array.from(masonryContainer.children) as IMasonryItem[];
+    // const removedElements: HTMLElement[] = [];
+    // let next = false;
+    // for (const element of items) {
+    //     if (element.children.length === 0) {
+    //         element.remove();
+    //         next = true;
+    //     } else if (!element.hasAttribute('data-masonry-item')) {
+    //         initItem(element);
+    //     }
+    // }
 };
 
 const setStyles = () => {
@@ -203,15 +165,14 @@ const start = () => {
         return;
     }
     setStyles();
-    // doAnimations();
-    const elements = Array.from(masonryContainer.children) as HTMLElement[];
 
-    doAnimations();
+    const elements = Array.from(masonryContainer.children) as HTMLElement[];
 
     for (const element of elements) {
         initItem(element);
     }
 
+    doAnimations();
     const containerObserver = new MutationObserver(update);
 
     // Start observing the target node for configured mutations

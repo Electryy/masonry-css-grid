@@ -54,16 +54,16 @@ const printRandomText = () => {
 onMounted(() => {
   
   data.value.push(
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
-    { img: 'https://picsum.photos/300/300', text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
+    { img: `https://picsum.photos/300/${generateRandom(200,300)}`, text: printRandomText() },
   )
 
 //   setTimeout(() => {
@@ -106,6 +106,7 @@ onMounted(() => {
   // height: 100%;
   overflow: hidden;
   // margin: 10px;
+  height: 100%;
 }
 * {
   margin: 0;
