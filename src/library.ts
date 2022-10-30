@@ -191,6 +191,13 @@ const setContainer = (element: HTMLElement) => {
 };
 
 const waitForContainer = () => {
+    const element = document.querySelector(containerSelector) as HTMLElement;
+
+    setContainer(element);
+
+    if (masonryContainer) {
+        return;
+    }
     const body = document.documentElement || document.body;
     const bodyObserver = new MutationObserver((mutationList, bodyObserver) => {
         for (const mutation of mutationList) {
@@ -224,13 +231,7 @@ const waitForContainer = () => {
 const init = (selector: string, options: Options) => {
     containerSelector = selector;
 
-    const element = document.querySelector(containerSelector) as HTMLElement;
-
-    setContainer(element);
-
-    if (!masonryContainer) {
-        waitForContainer();
-    }
+    waitForContainer();
 
     console.log('init');
     return {
